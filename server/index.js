@@ -48,11 +48,22 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // auth related api
-    const roomCollection = client.db('Click-N-Book').collection('rooms')
+    const roomsCollection = client.db('Click-N-Book').collection('rooms')
+
+    //get all rooms from db
     app.get('/rooms', async(req,res)=>{
-      const result = await roomCollection.find().toArray()
+      const result = await roomsCollection.find().toArray()
       res.send(result)
     })
+
+    //get a single room from db
+    app.get('/room/:id', async(req,res)=>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await roomsCollection.findOne(query)
+      res.send(result)
+    })
+
 
     app.post('/jwt', async (req, res) => {
       const user = req.body
