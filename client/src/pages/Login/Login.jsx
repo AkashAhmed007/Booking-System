@@ -3,22 +3,24 @@ import { FcGoogle } from 'react-icons/fc'
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import { ImSpinner3 } from "react-icons/im";
+import { useState } from 'react';
 const Login = () => {
   const {
     signIn,
     signInWithGoogle,
     loading,
     setLoading,
+    resetPassword
   } = useAuth();
   const navigate = useNavigate();
+  const [email,setEmail]=useState('')
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
     const email = form.email.value;
     const password = form.password.value;
-
-    try {
+  try {
       setLoading(true);
       //userCreate
       await signIn(email, password);
@@ -26,6 +28,7 @@ const Login = () => {
       toast.success("Login Successful");
     } catch (error) {
       toast.error(error.message);
+      setLoading(false);
     }
   };
   const handleGoogleSignIn = async () => {
@@ -38,6 +41,17 @@ const Login = () => {
     }
   };
 
+const handleResetPassword = async ()=>{
+  if(!email) return toast.error('Please provide a valid email')
+try {
+  await resetPassword(email)
+  toast.success('Password reset successful,Please check your email')
+  setLoading(false)
+} catch (error) {
+  toast.error(error.message)
+  setLoading(false)
+}
+};
   return (
     <div className='flex justify-center items-center min-h-screen'>
       <div className='flex flex-col max-w-md p-6 rounded-md sm:p-10 bg-gray-100 text-gray-900'>
@@ -59,6 +73,7 @@ const Login = () => {
                 Email address
               </label>
               <input
+              onBlur={e=>setEmail(e.target.value)}
                 type='email'
                 name='email'
                 id='email'
@@ -101,7 +116,7 @@ const Login = () => {
           </div>
         </form>
         <div className='space-y-1'>
-          <button className='text-xs hover:underline hover:text-rose-500 text-gray-400'>
+          <button onClick={handleResetPassword} className='text-xs hover:underline hover:text-rose-500 text-gray-400'>
             Forgot password?
           </button>
         </div>
