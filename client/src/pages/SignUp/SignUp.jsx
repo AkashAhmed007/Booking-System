@@ -134,7 +134,7 @@ const SignUp = () => {
               {loading ? (
                 <ImSpinner3 className="animate-spin m-auto" />
               ) : (
-                "Continue"
+                "Sign Up"
               )}
             </button>
           </div>
