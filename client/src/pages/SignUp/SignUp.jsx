@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import useAuth from "../../hooks/useAuth";
 import axios from "axios";
@@ -13,7 +13,8 @@ const SignUp = () => {
     setLoading,
   } = useAuth();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const from = location?.state;
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -38,7 +39,7 @@ const SignUp = () => {
       //updateUserProfile
       await updateUserProfile(name, data.data.display_url);
       navigate("/");
-      toast.success("Signup Successful");
+      toast.success("Signup Successful!");
     } catch (error) {
       toast.error(error.message);
     }
@@ -46,7 +47,7 @@ const SignUp = () => {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      navigate("/");
+      navigate(from);
       toast.success("Signup Successful");
     } catch (error) {
       toast.error(error.message);

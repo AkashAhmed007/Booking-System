@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FcGoogle } from 'react-icons/fc'
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
@@ -13,6 +13,8 @@ const Login = () => {
     resetPassword
   } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location?.state || '/'
   const [email,setEmail]=useState('')
   
   const handleSubmit = async (e) => {
@@ -24,7 +26,7 @@ const Login = () => {
       setLoading(true);
       //userCreate
       await signIn(email, password);
-      navigate("/");
+      navigate(from);
       toast.success("Login Successful");
     } catch (error) {
       toast.error(error.message);
@@ -34,7 +36,7 @@ const Login = () => {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      navigate("/");
+      navigate(from);
       toast.success("Login Successful");
     } catch (error) {
       toast.error(error.message);
