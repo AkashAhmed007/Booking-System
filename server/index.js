@@ -59,6 +59,13 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/my-listings/:email', async(req,res)=>{
+      const email = req.params.email;
+      let query = {'host.email': email}
+      const result = await roomsCollection.find(query).toArray()
+      res.send(result)
+    })
+
     //get a single room from db
     app.get('/room/:id', async(req,res)=>{
       const id = req.params.id;
