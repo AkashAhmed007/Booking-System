@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import { categories } from "../Categories/CategoriesData";
 import { DateRange } from "react-date-range";
-const AddRoomForm = ({ dates, handleDates, handleSubmit,handleImage,imagePreview,imageText }) => {
+import { ImSpinner3 } from "react-icons/im";
+const AddRoomForm = ({ dates, handleDates, handleSubmit,handleImage,imagePreview,imageText,loading }) => {
   return (
     <div className="w-full min-h-[calc(100vh-40px)] flex flex-col justify-center items-center text-gray-800 rounded-xl bg-gray-50">
       <form onSubmit={handleSubmit}>
@@ -172,10 +173,15 @@ const AddRoomForm = ({ dates, handleDates, handleSubmit,handleImage,imagePreview
         </div>
 
         <button
+        disabled={loading}
           type="submit"
           className="w-full p-3 mt-5 text-center font-medium text-white transition duration-200 rounded shadow-md bg-rose-500"
         >
-          Save & Continue
+                       {loading ? (
+                <ImSpinner3 className="animate-spin m-auto" />
+              ) : (
+                "Save & Continue"
+              )}
         </button>
       </form>
     </div>

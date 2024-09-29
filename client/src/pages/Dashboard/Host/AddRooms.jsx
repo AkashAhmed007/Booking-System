@@ -4,10 +4,13 @@ import { imageUpload } from "../../../api/utils";
 import useAuth from "../../../hooks/useAuth";
 import { Helmet } from "react-helmet-async";
 import  { useMutation } from '@tanstack/react-query'
+import toast from "react-hot-toast";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import { useNavigate } from "react-router-dom";
 function AddRooms() {
   const axiosSecure =  useAxiosSecure()
-  const { user } = useAuth();
+  const navigate = useNavigate()
+  const { user,loading, setLoading } = useAuth();
   const [imagePreview,setImagePreview] = useState()
   const [imageText,setImageText] = useState('Upload Image')
   const [dates, setDates] = useState({
@@ -25,11 +28,16 @@ function AddRooms() {
      const {data} = await axiosSecure.post(`/room`,roomData)
      return data
     },
-    onSuccess:()=>{console.log('Data saved successfully')}
+    onSuccess:()=>{
+      toast.success('Room added successfully')
+      navigate('/dashboard/my-listings')
+      setLoading(false)
+    }
   })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true)
     const form = e.target;
     const location = form.location.value;
     const category = form.category.value;
@@ -68,7 +76,8 @@ function AddRooms() {
       console.table(roomData)
       await mutateAsync(roomData)
     } catch (error) {
-      console.log(error);
+      toast.error(error.message)
+      setLoading(false)
     }
   };
 
@@ -88,6 +97,7 @@ function AddRooms() {
         handleImage={handleImage}
         imageText = {imageText}
         imagePreview = {imagePreview}
+        loading={loading}
       ></AddRoomForm>
     </div>
   );
