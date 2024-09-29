@@ -67,6 +67,11 @@ async function run() {
       res.send(result)
     })
 
+    app.post('/room', async(req,res)=>{
+      const roomData = req.body;
+      const result = await roomsCollection.insertOne(roomData);
+      res.send(result)
+    })
 
     app.post('/jwt', async (req, res) => {
       const user = req.body
