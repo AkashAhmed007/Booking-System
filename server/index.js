@@ -1,40 +1,40 @@
-const express = require('express')
-const app = express()
-require('dotenv').config()
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
-const jwt = require('jsonwebtoken')
+const express = require("express");
+const app = express();
+require("dotenv").config();
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 
-const port = process.env.PORT || 8000
+const port = process.env.PORT || 8000;
 
 // middleware
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: ["http://localhost:5173", "http://localhost:5174"],
   credentials: true,
   optionSuccessStatus: 200,
-}
-app.use(cors(corsOptions))
+};
+app.use(cors(corsOptions));
 
-app.use(express.json())
-app.use(cookieParser())
+app.use(express.json());
+app.use(cookieParser());
 
 // Verify Token Middleware
 const verifyToken = async (req, res, next) => {
-  const token = req.cookies?.token
-  console.log(token)
+  const token = req.cookies?.token;
+  console.log(token);
   if (!token) {
-    return res.status(401).send({ message: 'unauthorized access' })
+    return res.status(401).send({ message: "unauthorized access" });
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      console.log(err)
-      return res.status(401).send({ message: 'unauthorized access' })
+      console.log(err);
+      return res.status(401).send({ message: "unauthorized access" });
     }
-    req.user = decoded
-    next()
-  })
-}
+    req.user = decoded;
+    next();
+  });
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vdmac.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
@@ -43,94 +43,115 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
-})
+});
 
 async function run() {
   try {
     // auth related api
-    const roomsCollection = client.db('Click-N-Book').collection('rooms')
-
+    const roomsCollection = client.db("Click-N-Book").collection("rooms");
+    const usersCollection = client.db("Click-N-Book").collection("users");
     //get all rooms from db
-    app.get('/rooms', async(req,res)=>{
+    app.get("/rooms", async (req, res) => {
       const category = req.query.category;
-      let query = {}
-      if(category && category !== 'null') query = {category}
-      const result = await roomsCollection.find(query).toArray()
-      res.send(result)
-    })
+      let query = {};
+      if (category && category !== "null") query = { category };
+      const result = await roomsCollection.find(query).toArray();
+      res.send(result);
+    });
 
-    app.get('/my-listings/:email', async(req,res)=>{
+    app.get("/my-listings/:email", async (req, res) => {
       const email = req.params.email;
-      let query = {'host.email': email}
-      const result = await roomsCollection.find(query).toArray()
-      res.send(result)
-    })
+      let query = { "host.email": email };
+      const result = await roomsCollection.find(query).toArray();
+      res.send(result);
+    });
 
     //get a single room from db
-    app.get('/room/:id', async(req,res)=>{
+    app.get("/room/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const result = await roomsCollection.findOne(query)
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(id) };
+      const result = await roomsCollection.findOne(query);
+      res.send(result);
+    });
 
-    app.delete('/room/:id', async(req,res)=>{
+    app.delete("/room/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
-      const result = await roomsCollection.deleteOne(query)
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(id) };
+      const result = await roomsCollection.deleteOne(query);
+      res.send(result);
+    });
 
-    app.post('/room', async(req,res)=>{
+    app.post("/room", async (req, res) => {
       const roomData = req.body;
       const result = await roomsCollection.insertOne(roomData);
+      res.send(result);
+    });
+
+    app.put("/user", async (req, res) => {
+      const user = req.body;
+      const query = { email: user?.email };
+      const isUserExist = await usersCollection.findOne(query)
+
+      if(isUserExist) return res.send(isUserExist);
+      const options = { upsert: true };   
+      const updateDoc = {
+        $set: { ...user,
+          timeStamp: Date.now(),
+         },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc, options);
+      res.send(result)
+    });
+
+    app.get('/users', async(req,res)=>{
+      const result = await usersCollection.find().toArray()
       res.send(result)
     })
 
-    app.post('/jwt', async (req, res) => {
-      const user = req.body
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '365d',
-      })
+        expiresIn: "365d",
+      });
       res
-        .cookie('token', token, {
+        .cookie("token", token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
-        .send({ success: true })
-    })
+        .send({ success: true });
+    });
     // Logout
-    app.get('/logout', async (req, res) => {
+    app.get("/logout", async (req, res) => {
       try {
         res
-          .clearCookie('token', {
+          .clearCookie("token", {
             maxAge: 0,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
           })
-          .send({ success: true })
-        console.log('Logout successful')
+          .send({ success: true });
+        console.log("Logout successful");
       } catch (err) {
-        res.status(500).send(err)
+        res.status(500).send(err);
       }
-    })
+    });
 
     // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 })
+    await client.db("admin").command({ ping: 1 });
     console.log(
-      'Pinged your deployment. You successfully connected to MongoDB!'
-    )
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
   }
 }
-run().catch(console.dir)
+run().catch(console.dir);
 
-app.get('/', (req, res) => {
-  res.send('Hello from Click-N-Book Server..')
-})
+app.get("/", (req, res) => {
+  res.send("Hello from Click-N-Book Server..");
+});
 
 app.listen(port, () => {
-  console.log(`Click-N-Book is running on port ${port}`)
-})
+  console.log(`Click-N-Book is running on port ${port}`);
+});
