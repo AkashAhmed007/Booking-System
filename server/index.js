@@ -50,6 +50,7 @@ async function run() {
     // auth related api
     const roomsCollection = client.db("Click-N-Book").collection("rooms");
     const usersCollection = client.db("Click-N-Book").collection("users");
+    
     //get all rooms from db
     app.get("/rooms", async (req, res) => {
       const category = req.query.category;
@@ -123,6 +124,18 @@ async function run() {
       res.send(result)
     })
 
+app.patch('/users/update/:email', async(req,res)=>{
+  const user = req.body;
+  const email = req.params.email;
+  const query = {email}
+  const updateDoc = {
+    $set:{
+      ...user, timeStamp: Date.now()
+    }
+  }
+const result = await usersCollection.updateOne(query, updateDoc)
+res.send(result)
+})
 
 
     app.post("/jwt", async (req, res) => {
