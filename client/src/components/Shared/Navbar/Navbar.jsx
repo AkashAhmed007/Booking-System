@@ -56,7 +56,6 @@ const Navbar = () => {
               <div className="flex flex-row items-center gap-3">
                 {/* Become A Host btn */}
                 <div className="hidden md:block">
-                  {user && (
                   <button
                     onClick={() => setIsModalOpen(true)}
                     disabled={!user}
@@ -64,7 +63,6 @@ const Navbar = () => {
                   >
                     Host your home
                   </button>
-                  )}
                 </div>
                 <HostRequestModal
                   isOpen={isModalOpen}

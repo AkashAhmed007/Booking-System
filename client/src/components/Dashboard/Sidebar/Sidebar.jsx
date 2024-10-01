@@ -8,11 +8,14 @@ import { BsGraphUp } from 'react-icons/bs'
 import { NavLink } from 'react-router-dom'
 import useAuth from '../../../hooks/useAuth'
 import { Link } from 'react-router-dom'
+import useRole from '../../../hooks/useRole'
 
 const Sidebar = () => {
   const { logOut } = useAuth()
   const [isActive, setActive] = useState(false)
-
+  
+  const [role, isLoading] = useRole()
+  console.log(role,isLoading)
   // Sidebar Responsive Handler
   const handleToggle = () => {
     setActive(!isActive)
