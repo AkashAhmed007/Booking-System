@@ -90,7 +90,6 @@ async function run() {
     app.put("/user", async (req, res) => {
       const user = req.body;
       const query = { email: user?.email };
-
       const isUserExist = await usersCollection.findOne(query);
       if (isUserExist) {
         if (user?.status === "Requested") {
@@ -105,7 +104,6 @@ async function run() {
           return res.send(isUserExist);
         }
       }
-
       const options = { upsert: true };
       const updateDoc = {
         $set: { ...user, timeStamp: Date.now() },
@@ -118,6 +116,14 @@ async function run() {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
+
+    app.get('/user/:email', async(req,res)=>{
+      const email = req.params.email;
+      const result = await usersCollection.findOne({email})
+      res.send(result)
+    })
+
+
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
