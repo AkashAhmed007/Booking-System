@@ -7,7 +7,6 @@ import toast from 'react-hot-toast'
 import useAuth from '../../../hooks/useAuth'
 const UserDataRow = ({ user, refetch }) => {
   const { user: loggedInUser } = useAuth()
-
   const [isOpen, setIsOpen] = useState(false)
   const axiosSecure = useAxiosSecure()
   const { mutateAsync } = useMutation({
