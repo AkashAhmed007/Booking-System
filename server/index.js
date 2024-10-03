@@ -50,7 +50,18 @@ async function run() {
     // auth related api
     const roomsCollection = client.db("Click-N-Book").collection("rooms");
     const usersCollection = client.db("Click-N-Book").collection("users");
-    
+
+    //Verify Admin middleware
+
+    const verifyAdmin = async (req, res, next) => {
+      const user = req.user;
+      const query = { email: user?.email };
+      const result = await usersCollection.findOne(query);
+      if (!result || result?.role !== "admin")
+        res.status(401).send({ message: "Forbidden Access" });
+      next();
+    };
+
     //get all rooms from db
     app.get("/rooms", async (req, res) => {
       const category = req.query.category;
@@ -100,7 +111,6 @@ async function run() {
             },
           });
           return res.send(result);
-          
         } else {
           return res.send(isUserExist);
         }
@@ -113,30 +123,30 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users", async (req, res) => {
+    app.get("/users",verifyToken,verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
-    app.get('/user/:email', async(req,res)=>{
+    app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
-      const result = await usersCollection.findOne({email})
-      res.send(result)
-    })
+      const result = await usersCollection.findOne({ email });
+      res.send(result);
+    });
 
-app.patch('/users/update/:email', async(req,res)=>{
-  const user = req.body;
-  const email = req.params.email;
-  const query = {email}
-  const updateDoc = {
-    $set:{
-      ...user, timeStamp: Date.now()
-    }
-  }
-const result = await usersCollection.updateOne(query, updateDoc)
-res.send(result)
-})
-
+    app.patch("/users/update/:email", async (req, res) => {
+      const user = req.body;
+      const email = req.params.email;
+      const query = { email };
+      const updateDoc = {
+        $set: {
+          ...user,
+          timeStamp: Date.now(),
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -151,6 +161,7 @@ res.send(result)
         })
         .send({ success: true });
     });
+
     // Logout
     app.get("/logout", async (req, res) => {
       try {
