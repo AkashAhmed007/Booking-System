@@ -58,9 +58,20 @@ async function run() {
       const query = { email: user?.email };
       const result = await usersCollection.findOne(query);
       if (!result || result?.role !== "admin")
-        res.status(401).send({ message: "Forbidden Access" });
+        res.status(401).send({ message: "Unauthorized Access" });
       next();
     };
+
+    //Verify Host middleware
+    const verifyHost = async (req, res, next) => {
+      const user = req.user;
+      const query = { email: user?.email };
+      const result = await usersCollection.findOne(query);
+      if (!result || result?.role !== "host")
+        res.status(401).send({ message: "Unauthorized Access" });
+      next();
+    };
+
 
     //get all rooms from db
     app.get("/rooms", async (req, res) => {
@@ -71,7 +82,8 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/my-listings/:email", async (req, res) => {
+    //get listing-room for host
+    app.get("/my-listings/:email",verifyToken,verifyHost, async (req, res) => {
       const email = req.params.email;
       let query = { "host.email": email };
       const result = await roomsCollection.find(query).toArray();
@@ -86,19 +98,21 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/room/:id", async (req, res) => {
+    app.delete("/room/:id",verifyToken,verifyHost, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await roomsCollection.deleteOne(query);
       res.send(result);
     });
 
-    app.post("/room", async (req, res) => {
+    //save a room data from db
+    app.post("/room",verifyToken,verifyHost, async (req, res) => {
       const roomData = req.body;
       const result = await roomsCollection.insertOne(roomData);
       res.send(result);
     });
 
+    //status update for guest
     app.put("/user", async (req, res) => {
       const user = req.body;
       const query = { email: user?.email };
